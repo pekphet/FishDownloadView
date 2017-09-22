@@ -85,15 +85,15 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?) : FrameLayout(ctx, attrs) 
 
             override fun onComplete(tag2: String?, filePath: String?) {
                 if (tag2.equals(tag)) {
+                    mTvPG.stopTextProg(mConf.compileTextColor)
                     complete(filePath)
-                    mTvPG.setTextColor(mConf.compileTextColor)
                     dlck(CK_TYPE.COMPLETE, filePath)
                 }
             }
 
             override fun onFailed(tag2: String?, msg: String?) {
                 if (tag2.equals(tag)) {
-                    mTvPG.setTextColor(mConf.compileTextColor)
+                    mTvPG.stopTextProg(mConf.compileTextColor)
                     dlck(CK_TYPE.FAILED, msg)
                 }
             }

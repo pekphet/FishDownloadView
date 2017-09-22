@@ -48,30 +48,28 @@ class ColorChangedTextView(ctx: Context, attr: AttributeSet) : TextView(ctx, att
         super.onDraw(canvas)
         mStartX = (measuredWidth / 2 - mPaint.measureText(this@ColorChangedTextView.text.toString()) / 2)
         mStartY = measuredHeight / 2 + mPaint.fontMetrics.let { (it.bottom - it.top) / 2 - it.descent }
-        onDrawZ(canvas?:return)
+        onDrawZ(canvas ?: return)
     }
 
     @SuppressLint("WrongConstant")
     fun onDrawText(canvas: Canvas, isChangedColor: Boolean, startPoi: Int, endPoi: Int) {
         Log.d("DRAWTEXT", "ISCHCL:$isChangedColor, startPoi: $startPoi, endPoi: $endPoi, h:$measuredHeight")
-        canvas.save(Canvas.CLIP_SAVE_FLAG)
+//        canvas.save(Canvas.CLIP_SAVE_FLAG)
         canvas.clipRect(startPoi, 0, endPoi, measuredHeight)
         mPaint.color = if (isChangedColor) mProgressChangedColor else mTextColor
         canvas.drawText(this@ColorChangedTextView.text.toString(), mStartX, mStartY, mPaint)
     }
+
     var mSpliteXProg = 0
     private fun onDrawZ(canvas: Canvas) {
         var drawTotalW = 0
 
         var spliteXMax = 0
-        var spliteXStart = 0
-        val fm = mPaint.fontMetricsInt
         drawTotalW = mPaint.measureText(this.text.toString()).toInt()
-        spliteXStart = mStartX.toInt()
         spliteXMax = (mStartX + drawTotalW).toInt()
 
-        onDrawText(canvas, true, spliteXStart, spliteXStart + mSpliteXProg)
-        onDrawText(canvas, false, spliteXStart + mSpliteXProg, spliteXMax)
+        onDrawText(canvas, true, 0, mSpliteXProg)
+        onDrawText(canvas, false, mSpliteXProg, spliteXMax)
     }
 
     var mTextColor = currentTextColor
@@ -79,12 +77,19 @@ class ColorChangedTextView(ctx: Context, attr: AttributeSet) : TextView(ctx, att
         super.setTextColor(color)
         mTextColor = color
     }
+
     fun setTextProg(position: Int) {
         mSpliteXProg = position
         invalidate()
     }
-    fun stopTextProg(){
-        mSpliteXProg = 0
-        invalidate()
+
+    fun stopTextProg() = stopTextProg(mTextColor)
+    fun stopTextProg(textColor: Int) {
+        post {
+            this.setTextColor(textColor)
+            setTextProg(0)
+            invalidate()
+        }
     }
+
 }
