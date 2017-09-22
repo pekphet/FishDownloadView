@@ -31,6 +31,7 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
     companion object {
         val DOWNLOADING_COLOR: Int = 0xFF26D054.toInt()
         val COMPLETE_COLOR: Int = 0xFF5AA3E0.toInt()
+        val TEXT_COLOR: Int = 0xFF000000.toInt()
     }
 
     init {
@@ -63,12 +64,16 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
 
     private fun initView() {
         mTvPG.text = mConf.initText
+        mTvPG.setTextColor(mConf.textColor)
         mMask.setBackgroundResource(mConf.maskRes)
         if (mConf.baseBGRes == null) mBG.setBackgroundColor(mConf.baseBGColor) else mBG.setBackgroundResource(mConf.baseBGRes ?: return)
         if (mConf.initBGRes == null) mFlPG.setBackgroundColor(mConf.initBGColor) else mFlPG.setBackgroundResource(mConf.initBGRes ?: return)
         Log.e("attach to win", "att")
     }
 
+    fun text(str: String) {
+        mTvPG.text = str
+    }
     fun download(url: String, tag: String, fileName: String, fileSize: Long, dlck: (type: CK_TYPE, data: String?) -> Unit) {
         chgDownloadUI()
         val ck = object : IDownloadCK.Stub() {
@@ -82,18 +87,21 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
             override fun onComplete(tag2: String?, filePath: String?) {
                 if (tag2.equals(tag)) {
                     complete(filePath)
+                    mTvPG.setTextColor(mConf.compileTextColor)
                     dlck(CK_TYPE.COMPLETE, filePath)
                 }
             }
 
             override fun onFailed(tag2: String?, msg: String?) {
                 if (tag2.equals(tag)) {
+                    mTvPG.setTextColor(mConf.compileTextColor)
                     dlck(CK_TYPE.FAILED, msg)
                 }
             }
 
             override fun onCanceled(tag2: String?) {
                 if (tag2.equals(tag)) {
+                    mTvPG.setTextColor(mConf.compileTextColor)
                     dlck(CK_TYPE.CANCELED, "")
                 }
             }
@@ -115,6 +123,7 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
 
     private fun chgDownloadUI() {
         mFlPG.layoutParams = mFlPG.layoutParams.apply { width = 0 }
+        mTvPG.setTextColor(mConf.downloadingTextColor)
         if (mConf.downloadingBGRes == null) mFlPG.setBackgroundColor(mConf.downloadingBGColor) else mFlPG.setBackgroundResource(mConf.downloadingBGRes ?: return)
     }
 
@@ -138,12 +147,21 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
 
     enum class CK_TYPE {COMPLETE, CANCELED, FAILED }
 
-    data class DownloadBarConfigure(var initText: String = "开始下载", var downloadingText: String = "下载中  %.2f%%",
+    data class DownloadBarConfigure(var initText: String = "开始下载",
+                                    var downloadingText: String = "下载中  %.2f%%",
                                     var completeText: String = "下载完成",
-                                    var initBGColor: Int = DOWNLOADING_COLOR, var initBGRes: Int? = null,
-                                    var downloadingBGColor: Int = DownloadBar.DOWNLOADING_COLOR, var completeBGColor: Int = DownloadBar.COMPLETE_COLOR,
-                                    var downloadingBGRes: Int? = null, var completeBGRes: Int? = null,
-                                    var baseBGColor: Int = 0xffffffff.toInt(), var baseBGRes: Int? = null,
-                                    var maskRes: Int = R.drawable.progress_top, var pogressCK: (parentView: View, progressBar: FrameLayout, pg: Double) -> Unit = { view, img, pg -> img.layoutParams = img.layoutParams.apply { this@apply.width = (view.width * pg).toInt() } },
+                                    var textColor: Int = TEXT_COLOR,
+                                    var downloadingTextColor: Int = TEXT_COLOR,
+                                    var compileTextColor: Int = TEXT_COLOR,
+                                    var initBGColor: Int = DOWNLOADING_COLOR,
+                                    var initBGRes: Int? = null,
+                                    var downloadingBGColor: Int = DownloadBar.DOWNLOADING_COLOR,
+                                    var completeBGColor: Int = DownloadBar.COMPLETE_COLOR,
+                                    var downloadingBGRes: Int? = null,
+                                    var completeBGRes: Int? = null,
+                                    var baseBGColor: Int = 0xffffffff.toInt(),
+                                    var baseBGRes: Int? = null,
+                                    var maskRes: Int = R.drawable.progress_top,
+                                    var pogressCK: (parentView: View, progressBar: FrameLayout, pg: Double) -> Unit = { view, img, pg -> img.layoutParams = img.layoutParams.apply { this@apply.width = (view.width * pg).toInt() } },
                                     val notifyConfigureChanged: () -> Unit)
 }
