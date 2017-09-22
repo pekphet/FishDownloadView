@@ -19,14 +19,12 @@ import com.fish.downloader.service.DownloadService
 import com.fish.fishdownloader.IDownloadCK
 import com.fish.fishdownloader.IDownloader
 import com.fish.fishdownloader.R
+import com.fish.fishdownloader.view.ColorChangedTextView
 
 /**
  * Created by fish on 17-9-6.
  */
-class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) : FrameLayout(ctx, attrs, defSA, defRes) {
-    constructor(ctx: Context) : this(ctx, null)
-    constructor(ctx: Context, attrs: AttributeSet?) : this(ctx, attrs, 0, 0)
-    constructor(ctx: Context, attrs: AttributeSet?, defSA: Int) : this(ctx, attrs, defSA, 0)
+class DownloadBar(ctx: Context, attrs: AttributeSet?) : FrameLayout(ctx, attrs) {
 
     companion object {
         val DOWNLOADING_COLOR: Int = 0xFF26D054.toInt()
@@ -38,7 +36,7 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
         View.inflate(context, R.layout.v_download_bar, this)
     }
 
-    val mTvPG by bid<TextView>(R.id.tv_dlbar_pg)
+    val mTvPG by bid<ColorChangedTextView>(R.id.tv_dlbar_pg)
     val mFlPG by bid<FrameLayout>(R.id.fl_dlbar_progress)
     val mBG by bid<FrameLayout>(R.id.fl_dlbar_bg)
     val mMask by bid<ImageView>(R.id.img_dlbar_mask)
@@ -74,6 +72,7 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
     fun text(str: String) {
         mTvPG.text = str
     }
+
     fun download(url: String, tag: String, fileName: String, fileSize: Long, dlck: (type: CK_TYPE, data: String?) -> Unit) {
         chgDownloadUI()
         val ck = object : IDownloadCK.Stub() {
@@ -137,7 +136,7 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
     private fun progress(pg: Double) {
         mHandler.post {
             mTvPG.text = String.format(mConf.downloadingText, pg * 100)
-            mConf.pogressCK(this@DownloadBar, mFlPG, pg)
+            mConf.pogressCK(this@DownloadBar, mFlPG, pg, mTvPG)
         }
     }
 
@@ -162,6 +161,12 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?, defSA: Int, defRes: Int) :
                                     var baseBGColor: Int = 0xffffffff.toInt(),
                                     var baseBGRes: Int? = null,
                                     var maskRes: Int = R.drawable.progress_top,
-                                    var pogressCK: (parentView: View, progressBar: FrameLayout, pg: Double) -> Unit = { view, img, pg -> img.layoutParams = img.layoutParams.apply { this@apply.width = (view.width * pg).toInt() } },
+                                    var pogressCK: (parentView: View, progressBar: FrameLayout, pg: Double, colorChangableTV: ColorChangedTextView) -> Unit = { view, img, pg, ctv ->
+                                        {
+                                            img.layoutParams = img.layoutParams.apply { this@apply.width = (view.width * pg).toInt() }
+                                            ctv.setTextProg((view.width * pg).toInt())
+
+                                        }()
+                                    },
                                     val notifyConfigureChanged: () -> Unit)
 }

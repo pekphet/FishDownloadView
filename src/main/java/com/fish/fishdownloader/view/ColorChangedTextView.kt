@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.util.Log
 import android.widget.TextView
 
 /**
@@ -31,7 +32,6 @@ class ColorChangedTextView(ctx: Context, attr: AttributeSet) : TextView(ctx, att
     private fun onMesureZ(isWidth: Boolean, oldMs: Int): Int {
         val mode = MeasureSpec.getMode(oldMs)
         val oldSize = MeasureSpec.getSize(oldMs)
-        var newSize: Int
         return when (mode) {
             MeasureSpec.EXACTLY -> oldSize
             MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
@@ -42,21 +42,22 @@ class ColorChangedTextView(ctx: Context, attr: AttributeSet) : TextView(ctx, att
         }
     }
 
-    var mStartX = 0
-    var mStartY = 0
+    var mStartX = 0F
+    var mStartY = 0F
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        mStartX = (measuredWidth / 2 - mPaint.measureText(this@ColorChangedTextView.text.toString()) / 2).toInt()
-        mStartY = measuredHeight / 2 + mPaint.fontMetricsInt.let { (it.bottom - it.top) / 2 - it.descent }
+        mStartX = (measuredWidth / 2 - mPaint.measureText(this@ColorChangedTextView.text.toString()) / 2)
+        mStartY = measuredHeight / 2 + mPaint.fontMetrics.let { (it.bottom - it.top) / 2 - it.descent }
         onDrawZ(canvas?:return)
     }
 
     @SuppressLint("WrongConstant")
     fun onDrawText(canvas: Canvas, isChangedColor: Boolean, startPoi: Int, endPoi: Int) {
+        Log.d("DRAWTEXT", "ISCHCL:$isChangedColor, startPoi: $startPoi, endPoi: $endPoi, h:$measuredHeight")
         canvas.save(Canvas.CLIP_SAVE_FLAG)
         canvas.clipRect(startPoi, 0, endPoi, measuredHeight)
         mPaint.color = if (isChangedColor) mProgressChangedColor else mTextColor
-        canvas.drawText(this@ColorChangedTextView.text.toString(), mStartX.toFloat(), mStartY.toFloat(), mPaint)
+        canvas.drawText(this@ColorChangedTextView.text.toString(), mStartX, mStartY, mPaint)
     }
     var mSpliteXProg = 0
     private fun onDrawZ(canvas: Canvas) {
@@ -66,11 +67,11 @@ class ColorChangedTextView(ctx: Context, attr: AttributeSet) : TextView(ctx, att
         var spliteXStart = 0
         val fm = mPaint.fontMetricsInt
         drawTotalW = mPaint.measureText(this.text.toString()).toInt()
-        spliteXStart = mStartX
-        spliteXMax = mStartX + drawTotalW
+        spliteXStart = mStartX.toInt()
+        spliteXMax = (mStartX + drawTotalW).toInt()
 
         onDrawText(canvas, true, spliteXStart, spliteXStart + mSpliteXProg)
-        onDrawText(canvas, false, spliteXStart - mSpliteXProg, spliteXMax)
+        onDrawText(canvas, false, spliteXStart + mSpliteXProg, spliteXMax)
     }
 
     var mTextColor = currentTextColor
@@ -80,6 +81,10 @@ class ColorChangedTextView(ctx: Context, attr: AttributeSet) : TextView(ctx, att
     }
     fun setTextProg(position: Int) {
         mSpliteXProg = position
+        invalidate()
+    }
+    fun stopTextProg(){
+        mSpliteXProg = 0
         invalidate()
     }
 }
