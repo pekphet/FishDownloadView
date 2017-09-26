@@ -13,7 +13,6 @@ import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
 import com.fish.downloader.extensions.bid
 import com.fish.downloader.service.DownloadService
 import com.fish.fishdownloader.IDownloadCK
@@ -135,7 +134,6 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?) : FrameLayout(ctx, attrs) 
 
     private fun progress(pg: Double) {
         mHandler.post {
-            mTvPG.text = String.format(mConf.downloadingText, pg * 100)
             mConf.pogressCK(this@DownloadBar, mFlPG, pg, mTvPG)
         }
     }
@@ -164,7 +162,7 @@ class DownloadBar(ctx: Context, attrs: AttributeSet?) : FrameLayout(ctx, attrs) 
                                     var pogressCK: (parentView: View, progressBar: FrameLayout, pg: Double, colorChangableTV: ColorChangedTextView) -> Unit = { view, img, pg, ctv ->
                                         {
                                             img.layoutParams = img.layoutParams.apply { this@apply.width = (view.width * pg).toInt() }
-                                            ctv.setTextProg((view.width * pg).toInt())
+                                            ctv.setTextProg(String.format(downloadingText, pg * 100), (view.width * pg).toInt())
 
                                         }()
                                     },
